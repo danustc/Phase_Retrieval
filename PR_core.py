@@ -107,7 +107,7 @@ class Core(object):
 
     def retrievePF(self, dz, psf_diam, nIt):
         z_offset, zz = psf_zplane(self.PSF, dz, self.l/3.2) # This should be the reason!!!! >_<
-        A = self.PF.plane
+        A = self.PF.plane # initial pupil function:plane
         Mx, My = np.meshgrid(np.arange(self.nx)-self.nx/2., np.arange(self.nx)-self.nx/2.)
         background = self.background_reset(mask = 22, psf_diam = self.PF.k_pxl)
         print( "   background = ", background)

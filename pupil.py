@@ -124,14 +124,14 @@ class Simulation(Pupil):
             The complex PSF. If the memory is to small, a memmap will be
             returned instead of an array.
         """
-        nx = self.nx
+        ny, nx = self.ny, self.nx
         if _np.isscalar(zs):
             zs = [zs]
         nz = len(zs)
         kz = self.kz
 
     # The normalization for ifft2:
-        N = _np.sqrt(nx*self.ny)
+        N = _np.sqrt(self.nx*self.ny)
 
         # Preallocating memory for PSF:
         try:

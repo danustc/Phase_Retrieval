@@ -125,8 +125,11 @@ class UI(object):
         '''
         self.nmodes = self._ui.spinBox_nmode.value()
         k_max = self._core.PF.k_pxl
-        pf_crop = self._core.pf_phase[]
-        zern.fit_zernike(pf_crop, rad = k_max, nmodes = self.nmodes)[0]/(2*np.pi)
+        phase = self._core.pf_phase
+        D_phase = int(phase.shape[0]//2)
+        pf_crop = phase[D_phase - k_max:D_phase+k_max, D_phase-k_max:D_phase + k_max]
+        z_fit = zern.fit_zernike(pf_crop, rad = k_max, nmodes = self.nmodes)[0]/(2*np.pi)
+        print(z_fit)
 
 
 
