@@ -37,6 +37,7 @@ class UI(object):
         self._ui.pushButton_pffit.clicked.connect(self.fit_zernike)
         self._ui.lineEdit_NA.returnPressed.connect(self.set_NA)
         self._ui.lineEdit_nfrac.returnPressed.connect(self.set_nfrac)
+        self._ui.lineEdit_zstep.returnPressed.connect(self.set_dz)
         self._ui.lineEdit_wlc.returnPressed.connect(self.set_wavelength)
 
         #cs = self._ui.mpl_pupil.figure.axes[0].matshow(self._core.pf_ampli)
@@ -61,7 +62,8 @@ class UI(object):
         filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Open psf:', '', '*.npy')[0]
         print("Filename:", filename)
         self._ui.lineEdit_loadpsf.setText(filename)
-        self._core.load_psf(filename, self.dz)
+        self._core.load_psf(filename)
+        self._core.set_zrange(self.dz)
         self._core.pupil_Simulation(self.nwave,self.wstep)
         self.display_psf(n_cut = self._core.cz )
 
@@ -69,9 +71,11 @@ class UI(object):
     def retrievePF(self):
         # retrieve PF from psf
         print("function connected!")
+        self._core.set_zrange(self.dz)
         mask_size = int(self._ui.lineEdit_mask.text())
+        psf_rad = int(self._ui.lineEdit_prad.text())
         nIt = self._ui.spinBox_nIt.value()
-        self._core.retrievePF(mask_size, nIt)
+        self._core.retrievePF(psf_rad, mask_size, nIt)
         self.display_psf(n_cut = self._core.cz)
         self.display_pupil()
 
@@ -84,13 +88,13 @@ class UI(object):
         if obj_f is None:
             obj_f = float(self._ui.lineEdit_objfl.text())
         self.obj_f = obj_f
-        self._core.objf = obj_f
+        self._core.objf = obj_f*1000
 
     def set_pxl(self, pxl_size = None):
         if pxl_size is None:
             pxl_size = float(self._ui.lineEdit_pxl.text())
         self.pxl_size = pxl_size
-        self._core.pxl = pxl_size
+        self._core.pxl = pxl_size*0.001
 
     def set_NA(self, NA_input = None):
         if NA_input is None:
@@ -112,13 +116,13 @@ class UI(object):
         if wavelength is None:
             wavelength = float(self._ui.lineEdit_wlc.text())
         self.wavelength = wavelength
-        self._core.lcenter = wavelength
+        self._core.lcenter = wavelength*0.001
 
 
     def set_wstep(self, wstep = None):
         if wstep is None:
             wstep = float(self._ui.lineEdit_wlstep.text())
-        self.wstep = wstep
+        self.wstep = wstep*0.001
 
 
     # ------Below are a couple of execution and displaying functions ------------
@@ -161,6 +165,7 @@ class UI(object):
             self._ui.mpl_pupil.figure.colorbar(cs, orientation = 'vertical', pad = 0.05)
         else:
             cb = self._ui.mpl_pupil.figure.axes[1]
+            cb.cla()
             self._ui.mpl_pupil.figure.colorbar(cs, cax = cb)
         self._ui.mpl_pupil.figure.axes[0].set_axis_off()
         self._ui.mpl_pupil.draw()
