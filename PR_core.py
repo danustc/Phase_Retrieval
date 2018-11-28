@@ -70,7 +70,7 @@ class Core(object):
     def objf(self, new_cf):
         self.cf = new_cf
 
-    def load_psf(self,psf_path):
+    def load_psf(self,psf_path, dz):
         '''
         load a psf function
         '''
@@ -80,6 +80,11 @@ class Core(object):
         self.PSF = PSF
         self.nx = np.min([ny,nx])
         self.nz = nz
+        z_offset, zz = psf_zplane(self.PSF, dz, self.l/3.2) # This should be the reason!!!! >_<
+        print( "   z_offset = ", z_offset)
+        zs = zz-z_offset
+        self.cz = int(-zs[0]//dz)
+        self.zs = zs
         print("psf loaded!")
 
 
@@ -98,24 +103,20 @@ class Core(object):
         bk_inner = psf_diam
         bk_outer = mask
         hcyl = np.array(self.nz*[np.logical_and(r_pxl>=bk_inner, r_pxl<bk_outer+1)])
-        incyl = np.array(self.nz*[r_pxl<60])
+        incyl = np.array(self.nz*[r_pxl< bk_outer])
         background = np.mean(self.PSF[hcyl])
         self.PSF[np.logical_not(incyl)] = background
 
         return background
 
 
-    def retrievePF(self, dz, psf_diam, nIt):
-        z_offset, zz = psf_zplane(self.PSF, dz, self.l/3.2) # This should be the reason!!!! >_<
+    def retrievePF(self, p_diam, nIt):
         A = self.PF.plane # initial pupil function:plane
         Mx, My = np.meshgrid(np.arange(self.nx)-self.nx/2., np.arange(self.nx)-self.nx/2.)
-        background = self.background_reset(mask = 22, psf_diam = self.PF.k_pxl)
+        background = self.background_reset(mask = 22, psf_diam = p_diam)
         print( "   background = ", background)
-        print( "   z_offset = ", z_offset)
         PSF_sample = self.PSF
-        zs = zz-z_offset
-        self.cz = int(-zs[0]//dz)
-        complex_PF = self.PF.psf2pf(PSF_sample, zs, background, A, nIt)
+        complex_PF = self.PF.psf2pf(PSF_sample, self.zs, background, A, nIt)
         Pupil_final = _PupilFunction(complex_PF, self.PF)
         self.pf_complex = Pupil_final.complex
         self.pf_phase = unwrap_phase(Pupil_final.phase)

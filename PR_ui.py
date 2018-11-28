@@ -33,11 +33,13 @@ class UI(object):
         # The connection group of the buttons and texts
         self._ui.pushButton_retrieve.clicked.connect(self.retrievePF)
         self._ui.pushButton_loadpsf.clicked.connect(self.load_PSF)
+        self._ui.pushButton_ampli.clicked.connect(self.display_ampli)
         self._ui.pushButton_pffit.clicked.connect(self.fit_zernike)
         self._ui.lineEdit_NA.returnPressed.connect(self.set_NA)
         self._ui.lineEdit_nfrac.returnPressed.connect(self.set_nfrac)
         self._ui.lineEdit_wlc.returnPressed.connect(self.set_wavelength)
 
+        #cs = self._ui.mpl_pupil.figure.axes[0].matshow(self._core.pf_ampli)
         # initialize some parameters
         self.set_wavelength()
         self.set_NA()
@@ -55,11 +57,13 @@ class UI(object):
         '''
         load a psf function (.npy) from the selected folder
         '''
+        self.set_dz()
         filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Open psf:', '', '*.npy')[0]
         print("Filename:", filename)
         self._ui.lineEdit_loadpsf.setText(filename)
-        self._core.load_psf(filename)
+        self._core.load_psf(filename, self.dz)
         self._core.pupil_Simulation(self.nwave,self.wstep)
+        self.display_psf(n_cut = self._core.cz )
 
 
     def retrievePF(self):
@@ -67,8 +71,7 @@ class UI(object):
         print("function connected!")
         mask_size = int(self._ui.lineEdit_mask.text())
         nIt = self._ui.spinBox_nIt.value()
-        self.set_dz()
-        self._core.retrievePF(self.dz, mask_size, nIt)
+        self._core.retrievePF(mask_size, nIt)
         self.display_psf(n_cut = self._core.cz)
         self.display_pupil()
 
@@ -145,13 +148,35 @@ class UI(object):
         else:
             psf_slice = self._core.PSF[:,:, n_cut]
         self._ui.mpl_psf.figure.axes[0].matshow(np.log(psf_slice), cmap = 'Greys_r')
+        self._ui.mpl_psf.figure.axes[0].set_axis_off()
         self._ui.mpl_psf.draw()
+
+
+    def display_ampli(self):
+        '''
+        display the amplitude of the pupil.
+        '''
+        cs = self._ui.mpl_pupil.figure.axes[0].matshow(self._core.pf_ampli)
+        if len(self._ui.mpl_pupil.figure.axes) ==1:
+            self._ui.mpl_pupil.figure.colorbar(cs, orientation = 'vertical', pad = 0.05)
+        else:
+            cb = self._ui.mpl_pupil.figure.axes[1]
+            self._ui.mpl_pupil.figure.colorbar(cs, cax = cb)
+        self._ui.mpl_pupil.figure.axes[0].set_axis_off()
+        self._ui.mpl_pupil.draw()
 
     def display_pupil(self):
         '''
         display the pupil function.
         '''
-        self._ui.mpl_pupil.figure.axes[0].matshow(self._core.pf_phase)
+        cs = self._ui.mpl_pupil.figure.axes[0].matshow(self._core.pf_phase)
+        if len(self._ui.mpl_pupil.figure.axes) ==1:
+            self._ui.mpl_pupil.figure.colorbar(cs, orientation = 'vertical', pad = 0.05)
+        else:
+            cb = self._ui.mpl_pupil.figure.axes[1]
+            self._ui.mpl_pupil.figure.colorbar(cs, cax = cb)
+
+        self._ui.mpl_pupil.figure.axes[0].set_axis_off()
         self._ui.mpl_pupil.draw()
 
     def shutDown(self, event):

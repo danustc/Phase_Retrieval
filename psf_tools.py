@@ -101,8 +101,13 @@ def psf_zplane(stack, dz, w0, de = 1):
     a = im_z.max() - b
 
     p0 = (a,0,w0,b)
-    popt = optimize.curve_fit(gaussian, zz, im_z, p0)[0]
-    z_offset = popt[1] # The original version is wrong
+    try:
+        popt = optimize.curve_fit(gaussian, zz, im_z, p0)[0]
+        z_offset = popt[1] # The original version is wrong
+    except RuntimeError:
+        ind_z = np.argmax(im_z)
+        z_offset = zz[ind_z]
+
     return z_offset, zz
 
 
