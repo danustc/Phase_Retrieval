@@ -59,7 +59,7 @@ class UI(object):
         load a psf function (.npy) from the selected folder
         '''
         self.set_dz()
-        filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Open psf:', '', '*.npy')[0]
+        filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Open psf:', '', '*.*')[0]
         print("Filename:", filename)
         self._ui.lineEdit_loadpsf.setText(filename)
         self._core.load_psf(filename)

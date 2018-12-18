@@ -8,9 +8,10 @@ Need to use @setter and @property functions to simplify this.
 # This should be shaped into an independent module 
 # Phase retrieval 
 
-
+import os
 import numpy as np
 import libtim.zern
+import tifffile as tf
 import matplotlib.pyplot as plt
 import pupil
 from numpy.lib.scimath import sqrt as _msqrt
@@ -74,7 +75,11 @@ class Core(object):
         '''
         load a psf function
         '''
-        PSF = np.load(psf_path)
+        ext =  os.path.basename(psf_path).split('.')[-1]
+        if ext == 'npy':
+            PSF = np.load(psf_path)
+        elif ext == 'tif':
+            PSF = tf.imread(psf_path)
         nz, ny, nx = PSF.shape
         print(nz, ny, nx)
         self.PSF = PSF
