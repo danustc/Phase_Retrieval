@@ -5,6 +5,7 @@ Created by Dan on 05/04/2017 (Happy Youth's Day!)
 
 from PyQt5 import QtWidgets, QtCore
 import sys
+import os
 import numpy as np
 from libtim import zern
 from PR_core import Core
@@ -35,6 +36,7 @@ class UI(object):
         self._ui.pushButton_loadpsf.clicked.connect(self.load_PSF)
         self._ui.pushButton_ampli.clicked.connect(self.display_ampli)
         self._ui.pushButton_pffit.clicked.connect(self.fit_zernike)
+        self._ui.pushButton_savepupil.clicked.connect(self.savePupil)
         self._ui.lineEdit_NA.returnPressed.connect(self.set_NA)
         self._ui.lineEdit_nfrac.returnPressed.connect(self.set_nfrac)
         self._ui.lineEdit_zstep.returnPressed.connect(self.set_dz)
@@ -62,6 +64,7 @@ class UI(object):
         filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Open psf:', '', '*.*')[0]
         print("Filename:", filename)
         self._ui.lineEdit_loadpsf.setText(filename)
+        self.file_path = os.path.dirname(filename)
         self._core.load_psf(filename)
         self._core.set_zrange(self.dz)
         self._core.pupil_Simulation(self.nwave,self.wstep)
@@ -183,6 +186,19 @@ class UI(object):
 
         self._ui.mpl_pupil.figure.axes[0].set_axis_off()
         self._ui.mpl_pupil.draw()
+
+
+    def savePupil(self):
+        '''
+        save the pupil function
+        '''
+        psf_export = np.stack((self._core.pf_phase, self._core.pf_ampli))
+        basename = self._ui.lineEdit_pupilfname.text()
+        full_name = self.file_path + '/' + basename
+        print("save to destination:", full_name)
+        np.save(full_name, psf_export)
+
+
 
     def shutDown(self, event):
         '''
