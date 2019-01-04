@@ -10,6 +10,7 @@ import numpy as np
 from libtim import zern
 from PR_core import Core
 import PR_design
+from functools import partial
 
 class UI(object):
     '''
@@ -34,9 +35,10 @@ class UI(object):
         # The connection group of the buttons and texts
         self._ui.pushButton_retrieve.clicked.connect(self.retrievePF)
         self._ui.pushButton_loadpsf.clicked.connect(self.load_PSF)
-        self._ui.pushButton_ampli.clicked.connect(self.display_ampli)
+        self._ui.pushButton_ampli.clicked.connect(partial(self.display_pupil))
         self._ui.pushButton_pffit.clicked.connect(self.fit_zernike)
         self._ui.pushButton_savepupil.clicked.connect(self.savePupil)
+        self._ui.pushButton_rm4.clicked.connect(self.rm4)
         self._ui.lineEdit_NA.returnPressed.connect(self.set_NA)
         self._ui.lineEdit_nfrac.returnPressed.connect(self.set_nfrac)
         self._ui.lineEdit_zstep.returnPressed.connect(self.set_dz)
@@ -51,7 +53,8 @@ class UI(object):
         self.set_pxl()
         self.set_objf()
         self.set_nwave()
-
+        self.is_phase = True
+        self.z_fit = None
 
         self._window.show()
         self._app.exec_()
@@ -80,7 +83,7 @@ class UI(object):
         nIt = self._ui.spinBox_nIt.value()
         self._core.retrievePF(psf_rad, mask_size, nIt)
         self.display_psf(n_cut = self._core.cz)
-        self.display_pupil()
+        self.display_phase()
 
     # ------Below are a couple of setting functions ------
     def set_nwave(self):
@@ -119,13 +122,13 @@ class UI(object):
         if wavelength is None:
             wavelength = float(self._ui.lineEdit_wlc.text())
         self.wavelength = wavelength
-        self._core.lcenter = wavelength*0.001
+        self._core.lcenter = wavelength*0.001 # convert to microns
 
 
     def set_wstep(self, wstep = None):
         if wstep is None:
             wstep = float(self._ui.lineEdit_wlstep.text())
-        self.wstep = wstep*0.001
+        self.wstep = wstep*0.001 # convert to microns
 
 
     # ------Below are a couple of execution and displaying functions ------------
@@ -141,6 +144,27 @@ class UI(object):
         z_fit = zern.fit_zernike(pf_crop, rad = k_max, nmodes = self.nmodes)[0]/(2*np.pi)
         print(z_fit)
 
+        self.z_fit = z_fit
+
+    def rm4(self):
+        '''
+        remove 1-4 modes of zernike
+        '''
+        if self.z_fit is not None:
+            self.z_fit[:4] = 0.
+            k_max = self._core.PF.k_pxl
+            cleaned_phase = zern.calc_zernike(self.z_fit, rad = k_max)
+            print("removed the first 4 modes.")
+            self.display_phase(cleaned_phase)
+
+
+    def display_pupil(self):
+        if self.is_phase: # currently phase is displayed
+            self.display_ampli()
+        else:
+            self.display_phase()
+
+        self.is_phase = not(self.is_phase)
 
 
     def display_psf(self, n_cut, dimension = 0, log_scale = True):
@@ -172,12 +196,15 @@ class UI(object):
             self._ui.mpl_pupil.figure.colorbar(cs, cax = cb)
         self._ui.mpl_pupil.figure.axes[0].set_axis_off()
         self._ui.mpl_pupil.draw()
+        self._ui.pushButton_ampli.setText(QtCore.QCoreApplication.translate("Form", "Phase"))
 
-    def display_pupil(self):
+    def display_phase(self, phase = None):
         '''
         display the pupil function.
         '''
-        cs = self._ui.mpl_pupil.figure.axes[0].matshow(self._core.pf_phase)
+        if phase is None:
+            phase = self._core.pf_phase
+        cs = self._ui.mpl_pupil.figure.axes[0].matshow(phase)
         if len(self._ui.mpl_pupil.figure.axes) ==1:
             self._ui.mpl_pupil.figure.colorbar(cs, orientation = 'vertical', pad = 0.05)
         else:
@@ -187,6 +214,7 @@ class UI(object):
         self._ui.mpl_pupil.figure.axes[0].set_axis_off()
         self._ui.mpl_pupil.draw()
 
+        self._ui.pushButton_ampli.setText(QtCore.QCoreApplication.translate("Form", "Amplitude"))
 
     def savePupil(self):
         '''
@@ -195,7 +223,7 @@ class UI(object):
         psf_export = np.stack((self._core.pf_phase, self._core.pf_ampli))
         basename = self._ui.lineEdit_pupilfname.text()
         full_name = self.file_path + '/' + basename
-        print("save to destination:", full_name)
+        print("Save to the destination:", full_name)
         np.save(full_name, psf_export)
 
 

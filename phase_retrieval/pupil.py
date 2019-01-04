@@ -56,7 +56,7 @@ class Simulation(Pupil):
         The objective focal length in micrometer.
     '''
 
-    def __init__(self, nx=256, dx=0.1, l=0.68, n=1.33, NA=1.27, f=3333.33, wavelengths=10, wave_step=0.005):
+    def __init__(self, nx, dx, l, n=1.33, NA=1.27, f=3333.33, wavelengths=10, wave_step=0.005):
 
         dx = float(dx)
         self.dx = dx

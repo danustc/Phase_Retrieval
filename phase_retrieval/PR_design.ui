@@ -275,9 +275,9 @@
         <number>3</number>
        </property>
        <item>
-        <widget class="QCheckBox" name="checkBox_rm4">
+        <widget class="QPushButton" name="pushButton_rm4">
          <property name="text">
-          <string>remove 1-4</string>
+          <string>Remove 1-4</string>
          </property>
         </widget>
        </item>
@@ -344,7 +344,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="lineEdit_pupilfname"/>
+        <widget class="QLineEdit" name="lineEdit_pupilfname">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
