@@ -13,7 +13,7 @@ import numpy as np
 import libtim.zern
 import tifffile as tf
 import matplotlib.pyplot as plt
-import pupil
+import pupil.Pupil as Pupil
 from numpy.lib.scimath import sqrt as _msqrt
 from skimage.restoration import unwrap_phase
 from psf_tools import psf_zplane
@@ -95,9 +95,14 @@ class Core(object):
         print("psf loaded!")
 
 
+    def updateNA(self, new_NA):
+        self.NA = new_NA
+
+
     def pupil_Simulation(self, n_wave, d_wave):
         # simulate a pupil function using given parameters; update the list
-        self.PF=pupil.Simulation(self.nx, self.dx,self.l,self.nfrac,self.NA,self.cf,wavelengths=n_wave, wave_step = d_wave) # initialize the pupil function
+        print(self.NA)
+        self.PF= Pupil(self.nx, self.dx,self.l,self.nfrac,self.NA,self.cf,wavelengths=n_wave, wave_step = d_wave) # initialize the pupil function
         self.n_wave = n_wave
         self.d_wave = d_wave
 

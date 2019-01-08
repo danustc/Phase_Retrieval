@@ -12,9 +12,29 @@ from numpy.lib.scimath import sqrt as _msqrt
 import tempfile as _tempfile
 import pyfftw
 
+class Pupil(object):
+    """
+    This contains the pupil definition of the pupil function, which I don't find very useful.
+    """
+
+    def __init__(self, l, n, NA, f, d=170):
+
+        self.l = float(l)
+        self.n = float(n)
+        self.f = float(f)
+        self.NA = NA
+        self.s_max = f*NA # The maximum radius of pupil function, but it appears no where 
+        self.k_max = NA/l # The radius of the pupil in the k space 
+        self.d = float(d)
 
 
-class Pupil(Object):
+    def unit_disk_to_spatial_radial_coordinate(self, unit_disk):
+        # This is the real radius of the pupil plane on the deformable mirror
+        return self.s_max * unit_disk
+
+
+
+class Simulation(Pupil):
 
     '''
     Simulates the behaviour of a microscope based on Fourier optics.
@@ -46,16 +66,9 @@ class Pupil(Object):
         f = float(f)
         self.nx = nx
         self.ny = nx
-
-        self.l = float(l)
-        self.n = float(n)
-        self.f = float(f)
-        self.NA = NA
-
-        self.k_range()
+        Pupil.__init__(self, l, n, NA, f)
 
         self.numWavelengths = wavelengths
-
 
         dk = 1/(nx*dx)
         self.k_pxl = int(self.k_max/dk)
@@ -90,18 +103,6 @@ class Pupil(Object):
         self.kx = kx # This is not used
         self.theta = _np.arctan2(My,Mx) # Polar coordinate: angle
 
-
-    def k_range(self):
-        '''
-        Calculate the range of k-space
-        '''
-        self.s_max = self.f*self.NA # The maximum radius of pupil function, but it appears no where 
-        self.k_max = self.NA/self.l # The radius of the pupil in the k space 
-
-
-    def unit_disk_to_spatial_radial_coordinate(self, unit_disk):
-        # This is the real radius of the pupil plane on the deformable mirror
-        return self.s_max * unit_disk
 
     def pf2psf(self, PF, zs, intensity=True, verbose=False, use_pyfftw=True):
         """

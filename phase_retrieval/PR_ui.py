@@ -106,7 +106,7 @@ class UI(object):
         if NA_input is None:
             NA_input = float(self._ui.lineEdit_NA.text())
         self.NA = NA_input
-        self._core.NA = NA_input
+        self._core.updateNA(NA_input)
 
     def set_nfrac(self, nfrac = None):
         if nfrac is None:
