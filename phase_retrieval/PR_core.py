@@ -86,11 +86,11 @@ class Core(object):
         self.nx = np.min([ny,nx])
         self.nz = nz
 
-    def set_zrange(self, dz):
-        z_offset, zz = psf_zplane(self.PSF, dz, self.l/3.2) # This should be the reason!!!! >_<
+    def set_zrange(self):
+        z_offset, zz = psf_zplane(self.PSF, self.dz, self.l/3.2) # This should be the reason!!!! >_<
         print( "   z_offset = ", z_offset)
         zs = zz-z_offset
-        self.cz = int(-zs[0]//dz)
+        self.cz = int(-zs[0]//self.dz)
         self.zs = zs
         print("psf loaded!")
 
@@ -101,12 +101,10 @@ class Core(object):
         self.PF.update(NA = new_NA)
 
 
-    def pupil_Simulation(self, n_wave, d_wave):
+    def pupil_Simulation(self):
         # simulate a pupil function using given parameters; update the list
         print(self.NA)
-        self.PF= Pupil(self.nx, self.dx,self.l,self.nfrac,self.NA,self.cf,wavelengths=n_wave, wave_step = d_wave) # initialize the pupil function
-        self.n_wave = n_wave
-        self.d_wave = d_wave
+        self.PF= Pupil(self.nx, self.dx,self.l,self.nfrac,self.NA,self.cf,wavelengths=self.n_wave, wave_step = self.d_wave) # initialize the pupil function
 
     def background_reset(self, mask, psf_diam):
         '''

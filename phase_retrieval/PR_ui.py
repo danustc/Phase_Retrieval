@@ -49,7 +49,8 @@ class UI(object):
         self.set_wavelength()
         self.set_nwave()
         self.set_wstep()
-        self._core.pupil_Simulation(self.nwave,self.wstep)
+        #self._core.pupil_Simulation(self.nwave,self.wstep)
+        self.set_dz()
         self.set_NA()
         self.set_nfrac()
         self.set_pxl()
@@ -64,49 +65,54 @@ class UI(object):
         '''
         load a psf function (.npy) from the selected folder
         '''
-        self.set_dz()
         filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Open psf:', '', '*.*')[0]
         print("Filename:", filename)
         self._ui.lineEdit_loadpsf.setText(filename)
         self.file_path = os.path.dirname(filename)
         self._core.load_psf(filename)
-        self._core.set_zrange(self.dz)
-        self.display_psf(n_cut = self._core.cz )
+        self.display_psf(n_cut = int(self._core.nz//2))
 
 
     def retrievePF(self):
         # retrieve PF from psf
         print("function connected!")
-        self._core.set_zrange(self.dz)
+        self._core.set_zrange()
+        self._core.pupil_Simulation()
         mask_size = int(self._ui.lineEdit_mask.text())
         psf_rad = int(self._ui.lineEdit_prad.text())
         nIt = self._ui.spinBox_nIt.value()
         self._core.retrievePF(psf_rad, mask_size, nIt)
-        self.display_psf(n_cut = self._core.cz)
+        #self.display_psf(n_cut = int(self._core.nz//2))
         self.display_phase()
 
     # ------Below are a couple of setting functions ------
     def set_nwave(self):
-        self.nwave = int(self._ui.lineEdit_nwl.text())
+        '''
+        directly update the core parameters
+        '''
+        nwave = int(self._ui.lineEdit_nwl.text())
+        self._core.n_wave = nwave
 
     def set_objf(self, obj_f = None):
-        # set objective focal length 
+        '''
+        # set objective focal length, update the core value only.
+        '''
         if obj_f is None:
             obj_f = float(self._ui.lineEdit_objfl.text())
-        self.obj_f = obj_f
         self._core.objf = obj_f*1000
 
     def set_pxl(self, pxl_size = None):
+        '''
+        update the core value
+        '''
         if pxl_size is None:
             pxl_size = float(self._ui.lineEdit_pxl.text())
-        self.pxl_size = pxl_size
         self._core.pxl = pxl_size*0.001
 
     def set_NA(self, NA_input = None):
         if NA_input is None:
             NA_input = float(self._ui.lineEdit_NA.text())
-        self.NA = NA_input
-        self._core.updateNA(NA_input)
+        self._core.NA = NA_input
 
     def set_nfrac(self, nfrac = None):
         if nfrac is None:
@@ -116,19 +122,18 @@ class UI(object):
     def set_dz(self, dz_input = None):
         if dz_input is None:
            dz_input = float(self._ui.lineEdit_zstep.text())
-        self.dz = dz_input # this is not stored in the core program.
+        self._core.dz = dz_input
 
     def set_wavelength(self,wavelength = None):
         if wavelength is None:
             wavelength = float(self._ui.lineEdit_wlc.text())
-        self.wavelength = wavelength
         self._core.lcenter = wavelength*0.001 # convert to microns
 
 
     def set_wstep(self, wstep = None):
         if wstep is None:
             wstep = float(self._ui.lineEdit_wlstep.text())
-        self.wstep = wstep*0.001 # convert to microns
+        self._core.d_wave  = wstep*0.001 # convert to microns
 
 
     # ------Below are a couple of execution and displaying functions ------------

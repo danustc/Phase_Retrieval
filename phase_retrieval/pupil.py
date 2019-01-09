@@ -48,37 +48,21 @@ class Pupil(object):
         self.ny = nx
 
         self.l = float(l) # wavelength
-        #self.n = float(n) # refractive index
+        self.n = float(n) # refractive index
         self.f = float(f)
         self.NA = NA
 
-        self.phase_construction()
-        self.numWavelengths = wavelengths
-
         self.dk = 1/(nx*dx)
+        self.numWavelengths = wavelengths
+        self.d_wl = wave_step
+        self.phase_construction()
+
         # Pupil function pixel grid:
-        Mx,My = _np.mgrid[-nx/2.:nx/2.,-nx/2.:nx/2.]+0.5
-        self.x_pxl = Mx # pixel grid in x  
-        self.y_pxl = My # pixel grid in y
-        self.r_pxl = _msqrt(Mx**2+My**2) # why the x,y,r_pxl are dimensionless?
-        # Pupil function frequency space: 
-        kx = dk*Mx
-        ky = dk*My
-        out_pupil = self.k>self.k_max
         # Axial Fourier space coordinate. This must be updated when n, l, k are updated.
 
-        self.kz = _msqrt((n/l)**2-self.k**2)
-        self.kz[out_pupil] = 0
-        self.kzs = _np.zeros((self.numWavelengths,self.kz.shape[0],self.kz.shape[1]),dtype=self.kz.dtype)
-        ls = _np.linspace(l-wave_step,l+wave_step,self.numWavelengths)
-        for i in range(0,self.kzs.shape[0]):
-            self.kzs[i] = _msqrt((n/ls[i])**2-self.k**2)
-            self.kzs[i,out_pupil] = 0
-        # Scaled pupil function radial coordinate:
         self.r = self.k/self.k_max # Should be dimension-less
 
         # Plane wave:
-        self.theta = _np.arctan2(My,Mx) # Polar coordinate: angle
 
 
     def update(self, NA = None, wl = None, focal = None):
@@ -99,10 +83,24 @@ class Pupil(object):
         self.k_pxl = int(self.k_max/self.dk)
         print("The pixel radius of pupil:", self.k_pxl)
 
+        nx = self.nx
+        Mx,My = _np.mgrid[-nx/2.:nx/2.,-nx/2.:nx/2.]+0.5
+        kx = self.dk*Mx
+        ky = self.dk*My
         self.k = _msqrt(kx**2+ky**2) # This is in the unit of 1/x # this is a 2-D array 
         self.plane = _np.ones((nx,nx))+1j*_np.zeros((nx,nx))
         self.plane[self.k>self.k_max] = 0 # Outside the pupil: set to zero
+        out_pupil = self.k>self.k_max
 
+        self.kz = _msqrt((self.n/self.l)**2-self.k**2)
+        self.kz[out_pupil] = 0
+
+        self.kzs = _np.zeros((self.numWavelengths,self.kz.shape[0],self.kz.shape[1]),dtype=self.kz.dtype)
+        ls = _np.linspace(self.l-self.d_wl,self.l+self.d_wl,self.numWavelengths)
+        for i in range(0,self.kzs.shape[0]):
+            self.kzs[i] = _msqrt((self.n/ls[i])**2-self.k**2)
+            self.kzs[i,out_pupil] = 0
+        # Scaled pupil function radial coordinate:
 
     def unit_disk_to_spatial_radial_coordinate(self, unit_disk):
         # This is the real radius of the pupil plane on the deformable mirror
