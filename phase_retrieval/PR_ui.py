@@ -47,12 +47,13 @@ class UI(object):
         #cs = self._ui.mpl_pupil.figure.axes[0].matshow(self._core.pf_ampli)
         # initialize some parameters
         self.set_wavelength()
-        self.set_NA()
+        self.set_nwave()
         self.set_wstep()
+        self._core.pupil_Simulation(self.nwave,self.wstep)
+        self.set_NA()
         self.set_nfrac()
         self.set_pxl()
         self.set_objf()
-        self.set_nwave()
         self.is_phase = True
         self.z_fit = None
 
@@ -70,7 +71,6 @@ class UI(object):
         self.file_path = os.path.dirname(filename)
         self._core.load_psf(filename)
         self._core.set_zrange(self.dz)
-        self._core.pupil_Simulation(self.nwave,self.wstep)
         self.display_psf(n_cut = self._core.cz )
 
 

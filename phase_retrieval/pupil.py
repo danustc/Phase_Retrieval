@@ -14,7 +14,7 @@ import pyfftw
 
 
 
-class Pupil(Object):
+class Pupil(object):
 
     '''
     Simulates the behaviour of a microscope based on Fourier optics.
@@ -44,22 +44,18 @@ class Pupil(Object):
         n = float(n)
         NA = float(NA)
         f = float(f)
-        self.nx = nx
+        self.nx = nx # number of pixels
         self.ny = nx
 
-        self.l = float(l)
-        self.n = float(n)
+        self.l = float(l) # wavelength
+        #self.n = float(n) # refractive index
         self.f = float(f)
         self.NA = NA
 
-        self.k_range()
-
+        self.phase_construction()
         self.numWavelengths = wavelengths
 
-
-        dk = 1/(nx*dx)
-        self.k_pxl = int(self.k_max/dk)
-        print("The pixel radius of pupil:", self.k_pxl)
+        self.dk = 1/(nx*dx)
         # Pupil function pixel grid:
         Mx,My = _np.mgrid[-nx/2.:nx/2.,-nx/2.:nx/2.]+0.5
         self.x_pxl = Mx # pixel grid in x  
@@ -68,9 +64,9 @@ class Pupil(Object):
         # Pupil function frequency space: 
         kx = dk*Mx
         ky = dk*My
-        self.k = _msqrt(kx**2+ky**2) # This is in the unit of 1/x # this is a 2-D array 
         out_pupil = self.k>self.k_max
-        # Axial Fourier space coordinate:
+        # Axial Fourier space coordinate. This must be updated when n, l, k are updated.
+
         self.kz = _msqrt((n/l)**2-self.k**2)
         self.kz[out_pupil] = 0
         self.kzs = _np.zeros((self.numWavelengths,self.kz.shape[0],self.kz.shape[1]),dtype=self.kz.dtype)
@@ -80,23 +76,32 @@ class Pupil(Object):
             self.kzs[i,out_pupil] = 0
         # Scaled pupil function radial coordinate:
         self.r = self.k/self.k_max # Should be dimension-less
-        self.s = self.unit_disk_to_spatial_radial_coordinate(self.r) # The real radius of the pupil. 
 
         # Plane wave:
-        self.plane = _np.ones((nx,nx))+1j*_np.zeros((nx,nx))
-        self.plane[self.k>self.k_max] = 0 # Outside the pupil: set to zero
-        self.pupil_npxl = abs(self.plane.sum()) # how many non-zero pixels
-
-        self.kx = kx # This is not used
         self.theta = _np.arctan2(My,Mx) # Polar coordinate: angle
 
 
-    def k_range(self):
+    def update(self, NA = None, wl = None, focal = None):
+        if NA is not None:
+            self.NA = NA
+        if wl is not None:
+            self.l = wl
+        if focal is not None:
+            self.f = focal
+
+
+    def phase_construction(self):
         '''
         Calculate the range of k-space
         '''
         self.s_max = self.f*self.NA # The maximum radius of pupil function, but it appears no where 
         self.k_max = self.NA/self.l # The radius of the pupil in the k space 
+        self.k_pxl = int(self.k_max/self.dk)
+        print("The pixel radius of pupil:", self.k_pxl)
+
+        self.k = _msqrt(kx**2+ky**2) # This is in the unit of 1/x # this is a 2-D array 
+        self.plane = _np.ones((nx,nx))+1j*_np.zeros((nx,nx))
+        self.plane[self.k>self.k_max] = 0 # Outside the pupil: set to zero
 
 
     def unit_disk_to_spatial_radial_coordinate(self, unit_disk):
