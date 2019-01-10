@@ -80,11 +80,17 @@ class Core(object):
             PSF = np.load(psf_path)
         elif ext == 'tif':
             PSF = tf.imread(psf_path)
-        nz, ny, nx = PSF.shape
-        print(nz, ny, nx)
-        self.PSF = PSF
-        self.nx = np.min([ny,nx])
-        self.nz = nz
+
+        try:
+            nz, ny, nx = PSF.shape
+            print(nz, ny, nx)
+            self.PSF = PSF
+            self.nx = np.min([ny,nx])
+            self.nz = nz
+            return True
+        except UnboundLocalError:
+            print("wrong PSF format. Please reload the psf.")
+            return False
 
     def set_zrange(self):
         z_offset, zz = psf_zplane(self.PSF, self.dz, self.l/3.2) # This should be the reason!!!! >_<
@@ -132,17 +138,32 @@ class Core(object):
         PSF_sample = self.PSF
         complex_PF = self.PF.psf2pf(PSF_sample, self.zs, background, A, nIt)
         print(self.zs)
-        Pupil_final = _PupilFunction(complex_PF, self.PF)
+        Pupil_final = _PupilFunction(complex_PF)
         self.pf_complex = Pupil_final.complex
         self.pf_phase = unwrap_phase(Pupil_final.phase)
         self.pf_ampli = Pupil_final.amplitude
 
 
-    def get_phase(self):
+    def get_phase(self, crop = True):
         '''
         return the (unwrapped pupil phase)
         '''
-        return self.pf_phase
+        if crop:
+            hx = int(self.nx//2)
+            cropped_phase = self.pf_phase[hx - self.PF.k_pxl-1:hx+self.PF.k_pxl+1, hx-self.PF.k_pxl-1:hx+self.PF.k_pxl+1]
+
+            return cropped_phase
+        else:
+            return self.pf_phase
+
+
+    def get_ampli(self, crop = True):
+        if crop:
+            hx = int(self.nx//2)
+            cropped_ampli= self.pf_ampli[hx - self.PF.k_pxl-1:hx+self.PF.k_pxl+1, hx-self.PF.k_pxl-1:hx+self.PF.k_pxl+1]
+            return cropped_ampli
+        else:
+            return self.pf_ampli
 
 
     def strehl_ratio(self):
@@ -163,9 +184,8 @@ class _PupilFunction(object):
     a pupil function that keeps track when either complex or amplitude/phase
     representation is changed.
     '''
-    def __init__(self, cmplx, geometry):
+    def __init__(self, cmplx):
         self.complex = cmplx
-        self._geometry = geometry
 
     @property
     def complex(self):
@@ -195,16 +215,4 @@ class _PupilFunction(object):
         self._phase = new
         self._complex = self._amplitude * np.exp(1j*new)
 
-    @property
-    def zernike_coefficients(self):
-        return self._zernike_coefficients
 
-    @zernike_coefficients.setter
-    def zernike_coefficients(self, new):
-        self._zernike_coefficients = new
-        #self._zernike = zernike.basic_set(new, self._geometry.r, self._geometry.theta)
-        self._zernike = libtim.zern.calc_zernike(new, self._geometry.nx/2.0)
-
-    @property
-    def zernike(self):
-        return self._zernike
