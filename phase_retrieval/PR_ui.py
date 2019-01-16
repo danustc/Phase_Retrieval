@@ -237,7 +237,6 @@ class UI(object):
         self._ui.mpl_phase.figure.axes[0].set_axis_off()
         self._ui.mpl_phase.draw()
 
-        #self._ui.pushButton_ampli.setText(QtCore.QCoreApplication.translate("Form", "Amplitude"))
 
 
     def display_fit(self, rm4):

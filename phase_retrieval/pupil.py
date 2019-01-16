@@ -2,8 +2,7 @@
 # based on Ryan's inControl package with some minor modification.
 # This should be wrapped into a cleaner class.
 # Contains a couple of redundant functions which are device-based. Should be removed.
-# Last update: 08/11/16 by Dan
-
+# Last update: 01/16/2019 by Dan
 
 import numpy as _np
 from scipy import fftpack as _fftpack
@@ -11,7 +10,6 @@ from scipy import ndimage
 from numpy.lib.scimath import sqrt as _msqrt
 import tempfile as _tempfile
 import pyfftw
-import libtim.zern as zern
 
 
 
@@ -37,7 +35,7 @@ class Pupil(object):
         The objective focal length in micrometer.
     '''
 
-    def __init__(self, nx, dx, l, n=1.33, NA=1.27, f=3333.33, wavelengths=10, wave_step=0.005):
+    def __init__(self, nx, dx, l = 0.520, n=1.33, NA=1.27, f=3333.33, wavelengths=10, wave_step=0.005):
 
         dx = float(dx)
         self.dx = dx
@@ -279,11 +277,3 @@ class Pupil(object):
         return A
 
 
-    def z_synthesis(self, z_coef, zs):
-        '''
-        given zernike coefficient, return a synthesized PSF in intensity (amplitude^2)
-        zs: the z-array in the unit of microns
-        '''
-        cleaned_phase = zern.calc_zernike(z_coef, rad = self.k_pxl)
-        PSF = self.pf2psf(cleaned_phase, zs, verbose = True)
-        return PSF
