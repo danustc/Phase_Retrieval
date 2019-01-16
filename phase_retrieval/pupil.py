@@ -11,6 +11,7 @@ from scipy import ndimage
 from numpy.lib.scimath import sqrt as _msqrt
 import tempfile as _tempfile
 import pyfftw
+import libtim.zern as zern
 
 
 
@@ -115,8 +116,7 @@ class Pupil(object):
         PF: array
             The complex pupil function.
         zs: number or iteratable
-            The axial position or a list of axial positions which should be
-            computed. Focus is at z=0.
+            The axial position or a list of axial positions which should be computed. Focus is at z=0.
         intensity: bool
             Specifies if the intensity or the complex field should be returned.
 
@@ -278,3 +278,12 @@ class Pupil(object):
 
         return A
 
+
+    def z_synthesis(self, z_coef, zs):
+        '''
+        given zernike coefficient, return a synthesized PSF in intensity (amplitude^2)
+        zs: the z-array in the unit of microns
+        '''
+        cleaned_phase = zern.calc_zernike(z_coef, rad = self.k_pxl)
+        PSF = self.pf2psf(cleaned_phase, zs, verbose = True)
+        return PSF
