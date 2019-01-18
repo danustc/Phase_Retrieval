@@ -3,14 +3,13 @@ This is the ui interface for phase retrieval.
 Created by Dan on 05/04/2017 (Happy Youth's Day!)
 '''
 
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets
 import sys
 import os
 import numpy as np
 from libtim import zern
 from PR_core import Core
 import PR_design
-from functools import partial
 
 class UI(object):
     '''
