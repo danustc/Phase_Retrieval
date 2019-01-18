@@ -10,9 +10,7 @@ Need to use @setter and @property functions to simplify this.
 
 import os
 import numpy as np
-import libtim.zern
 import tifffile as tf
-import matplotlib.pyplot as plt
 from pupil import Pupil
 from numpy.lib.scimath import sqrt as _msqrt
 from skimage.restoration import unwrap_phase
@@ -21,15 +19,16 @@ from psf_tools import psf_zplane
 # a small zernike function
 
 class Core(object):
-    def __init__(self,data_folder = None):
-        self.data_folder = data_folder
-        self.PSF = None
+    def __init__(self, PSF = None):
+        self._PSF = PSF
         self.PF = None
         self.dx = None
         self.l= None
         self._NA = None
         self._nfrac = None
         self.cf = None
+        self.nw = 1
+        self.dw = 0.005
         print("Initialized!")
     # -----------------------Below is a couple of setting functions ---------------
     @property
@@ -70,6 +69,29 @@ class Core(object):
     @objf.setter
     def objf(self, new_cf):
         self.cf = new_cf
+        
+        
+    @property
+    def n_wave(self):
+        return self.nw
+    @n_wave.setter
+    def n_wave(self, new_nw):
+        self.nw = new_nw
+        
+        
+    @property
+    def d_wave(self):
+        return self.dw
+    @d_wave.setter
+    def d_wave(self, new_dw):
+        self.dw = new_dw
+        
+    @property
+    def PSF(self):
+        return self._PSF
+    @PSF.setter
+    def PSF(self, new_PSF):
+        self._PSF = new_PSF
 
     def load_psf(self,psf_path):
         '''
@@ -108,7 +130,7 @@ class Core(object):
 
 
     def pupil_Simulation(self):
-        # simulate a pupil function using given parameters; update the list
+        # simulate a pupil function using given parameters; update the list. Everything is included.
         print(self.NA)
         self.PF= Pupil(self.nx, self.dx,self.l,self.nfrac,self.NA,self.cf,wavelengths=self.n_wave, wave_step = self.d_wave) # initialize the pupil function
 
