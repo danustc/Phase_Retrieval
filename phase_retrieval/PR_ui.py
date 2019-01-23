@@ -92,6 +92,7 @@ class UI(object):
             #self.display_psf(n_cut = int(self._core.nz//2))
             self.display_phase()
             self.display_ampli()
+            print("Strehl ratio:", self._core.strehl_ratio())
         else:
             print("There is no PSF for phase retrieval.")
 

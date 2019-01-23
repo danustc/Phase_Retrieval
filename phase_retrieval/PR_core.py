@@ -133,6 +133,9 @@ class Core(object):
         # simulate a pupil function using given parameters; update the list. Everything is included.
         print(self.NA)
         self.PF= Pupil(self.nx, self.dx,self.l,self.nfrac,self.NA,self.cf,wavelengths=self.n_wave, wave_step = self.d_wave) # initialize the pupil function
+        in_pupil = self.PF.k <= self.PF.k_max
+        self.NK = in_pupil.sum()
+
 
     def background_reset(self, mask, psf_diam):
         '''
