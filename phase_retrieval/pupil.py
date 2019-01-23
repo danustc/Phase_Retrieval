@@ -61,6 +61,7 @@ class Pupil(object):
 
         self.r = self.k/self.k_max # Should be dimension-less
 
+
         # Plane wave:
 
 

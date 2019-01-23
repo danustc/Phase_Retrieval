@@ -63,6 +63,7 @@ class UI(object):
         self.set_pxl()
         self.set_objf()
         self.z_fit = None
+        self.cleaned_phase = None
 
         self._window.show()
         self._app.exec_()
@@ -89,9 +90,14 @@ class UI(object):
             psf_rad = int(self._ui.lineEdit_prad.text())
             nIt = self._ui.spinBox_nIt.value()
             self._core.retrievePF(psf_rad, mask_size, nIt)
+            raw_phase= self._core.get_phase(crop = True)
+            ampli=self._core.get_ampli(crop = True)
+            strehl_raw = self.strehl_ratio(raw_phase, ampli)
+            print("Raw strehl ratio:", strehl_raw)
             #self.display_psf(n_cut = int(self._core.nz//2))
             self.display_phase()
             self.display_ampli()
+            print("Strehl ratio:", self._core.strehl_ratio())
         else:
             print("There is no PSF for phase retrieval.")
 
@@ -180,9 +186,12 @@ class UI(object):
             self.z_fit[:4] = 0.
             k_max = self._core.PF.k_pxl
             cleaned_phase = zern.calc_zernike(self.z_fit, rad = k_max)
-            print("removed the first 4 modes.")
+            ampli=self._core.get_ampli(True)
+            strehl_clean = self.strehl_ratio(cleaned_phase, ampli)
+            print("removed the first 4 modes. Strehl ratio:", strehl_clean)
             self.display_phase(cleaned_phase)
             self.display_fit(rm4 = True)
+            self.cleaned_phase = cleaned_phase
 
     def display_pupil(self):
         self.display_ampli()
@@ -266,6 +275,24 @@ class UI(object):
             np.save(full_name, psf_export)
         except AttributeError:
             print('There is no retrieved pupil function.')
+            
+            
+            
+    def strehl_ratio(self, phase, ampli):
+        NK = self._core.NK
+        e_phase = np.cos(phase) + 1j * np.sin(phase)
+        pf_complex = ampli*e_phase
+        c_up = np.abs(pf_complex.sum())**2
+        c_down = (ampli**2).sum()*NK
+        strehl = c_up/c_down
+        
+        #strehl = np.abs(e_phase.sum()/NK)**2
+        
+        # this is very raw. Should save the indices for pixels inside the pupil. 
+        #c_up = np.abs(self.pf_complex.sum())**2
+        #c_down = (self.pf_ampli**2).sum()*self.NK
+        #strehl = c_up/c_down
+        return strehl
 
 
     def saveFit(self):
