@@ -175,8 +175,8 @@ class Core(object):
         '''
         if crop:
             hx = int(self.nx//2)
-            cropped_phase = self.pf_phase[hx - self.PF.k_pxl-1:hx+self.PF.k_pxl+1, hx-self.PF.k_pxl-1:hx+self.PF.k_pxl+1]
-
+            #cropped_phase = self.pf_phase[hx - self.PF.k_pxl-1:hx+self.PF.k_pxl+1, hx-self.PF.k_pxl-1:hx+self.PF.k_pxl+1]
+            cropped_phase = self.pf_phase[hx - self.PF.k_pxl:hx+self.PF.k_pxl, hx-self.PF.k_pxl:hx+self.PF.k_pxl]
             return cropped_phase
         else:
             return self.pf_phase
@@ -185,18 +185,19 @@ class Core(object):
     def get_ampli(self, crop = True):
         if crop:
             hx = int(self.nx//2)
-            cropped_ampli= self.pf_ampli[hx - self.PF.k_pxl-1:hx+self.PF.k_pxl+1, hx-self.PF.k_pxl-1:hx+self.PF.k_pxl+1]
+            #cropped_ampli= self.pf_ampli[hx - self.PF.k_pxl-1:hx+self.PF.k_pxl+1, hx-self.PF.k_pxl-1:hx+self.PF.k_pxl+1]
+            cropped_ampli= self.pf_ampli[hx - self.PF.k_pxl:hx+self.PF.k_pxl, hx-self.PF.k_pxl:hx+self.PF.k_pxl]
             return cropped_ampli
         else:
             return self.pf_ampli
 
 
-    def strehl_ratio(self):
-        # this is very raw. Should save the indices for pixels inside the pupil. 
-        c_up = np.abs(self.pf_complex.sum())**2
-        c_down = (self.pf_ampli**2).sum()*self.NK
-        strehl = c_up/c_down
-        return strehl
+#    def strehl_ratio(self):
+#        # this is very raw. Should save the indices for pixels inside the pupil. 
+#        c_up = np.abs(self.pf_complex.sum())**2
+#        c_down = (self.pf_ampli**2).sum()*self.NK
+#        strehl = c_up/c_down
+#        return strehl
 
     def shutDown(self):
         '''
