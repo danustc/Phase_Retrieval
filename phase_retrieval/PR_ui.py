@@ -56,34 +56,46 @@ class UI(object):
         self.set_crop()
 
 
-    def configuration(self, config_dict = None):
-        self.set_wavelength()
-        self.set_nwave()
-        self.set_wstep()
-        #self._core.pupil_Simulation(self.nwave,self.wstep)
-        self.set_dz()
-        self.set_NA()
-        self.set_nfrac()
-        self.set_pxl()
-        self.set_objf()
-        self.z_fit = None
-        self.cleaned_phase = None
+        if config_dict is None:
+            self.configuration()
 
         self._window.show()
         self._app.exec_()
+
+    def configuration(self, conf_dict = None):
+        if conf_dict is None:
+            self.set_wavelength()
+            self.set_nwave()
+            self.set_wstep()
+            #self._core.pupil_Simulation(self.nwave,self.wstep)
+            self.set_dz()
+            self.set_NA()
+            self.set_nfrac()
+            self.set_pxl()
+            self.set_objf()
+            self.z_fit = None
+            self.cleaned_phase = None
+        else:
+            self.set_NA(conf_dict['NA'])
+            self.set_nwave(conf_dict['nwave'])
+            self.set_objf(conf_dict['obj_f'])
+            self.set_pxl(conf_dict['pxl'])
+            self.set_dz(conf_dict['dz'])
+            self.set_wavelength(conf_dict['wavelength'])
+            self.set_wstep(conf_dict['wstep'])
 
     def loadConf(self):
         '''
         load configuration
         '''
-        filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Configuration file:', '', "configuration files(*.txt *.yaml)")[0]
-        print("Configuration:", filename)
-        self._ui.lineEdit_conf.setText(filename)
-        with open(filename, 'r') as fi:
+        conf_source = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Configuration file:', '', "configuration files(*.txt *.yaml)")[0]
+        print("Configuration:", conf_source)
+        self._ui.lineEdit_conf.setText(conf_source)
+        with open(conf_source, 'r') as fi:
             conf_dict = yaml.load(fi)
             self.configuration(conf_dict)
 
-    def exportConfig(self):
+    def exportConf(self):
         '''
         export configuration
         '''
@@ -139,6 +151,8 @@ class UI(object):
         '''
         if nwave is None:
             nwave = int(self._ui.lineEdit_nwl.text())
+        else:
+            self._ui.lineEdit_nwl.setText(str(nwave))
         self._core.n_wave = nwave
 
     def set_objf(self, obj_f = None):
@@ -147,6 +161,8 @@ class UI(object):
         '''
         if obj_f is None:
             obj_f = float(self._ui.lineEdit_objfl.text())
+        else:
+            self._ui.lineEdit_objfl.setText(str(obj_f))
         self._core.objf = obj_f*1000
 
     def set_pxl(self, pxl_size = None):
@@ -348,12 +364,16 @@ class UI(object):
 # ------------------------Test of the module------------
 def main():
     pr_core = Core()
-    if len(sys.argv) > 1:
+    if len(sys.argv) == 1:
+        PR_UI = UI(pr_core)
+    elif len(sys.argv) > 1:
         # configuration file is received
         try:
             with open(sys.argv[1], 'r') as fi:
                 conf_dict = yaml.load(fi)
             PR_UI = UI(pr_core, conf_dict)
+        except IOError:
+            print("The configuration file does not exist.")
 
 if __name__ == '__main__':
     main()
