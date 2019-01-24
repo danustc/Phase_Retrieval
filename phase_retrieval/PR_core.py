@@ -69,16 +69,14 @@ class Core(object):
     @objf.setter
     def objf(self, new_cf):
         self.cf = new_cf
-        
-        
+
     @property
     def n_wave(self):
         return self.nw
     @n_wave.setter
     def n_wave(self, new_nw):
         self.nw = new_nw
-        
-        
+
     @property
     def d_wave(self):
         return self.dw
@@ -191,6 +189,9 @@ class Core(object):
         else:
             return self.pf_ampli
 
+    def get_config(self):
+        # return the configuration of the class.
+        conf_dict = {'NA': self.NA, 'objf': self.objf }
 
 #    def strehl_ratio(self):
 #        # this is very raw. Should save the indices for pixels inside the pupil. 

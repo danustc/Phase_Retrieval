@@ -87,7 +87,11 @@ class UI(object):
         '''
         export configuration
         '''
-
+        # Read the file name from current 
+        exp_destination = 'config.yaml'
+        conf_dict = self._core.get_config()
+        with open(exp_destination, 'w') as fo:
+            yaml.dump(conf_dict, fo)
 
 
 
