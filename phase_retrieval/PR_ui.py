@@ -31,6 +31,8 @@ class UI(object):
         self._ui.setupUi(self._window)
 
         # The connection group of the buttons and texts
+        self._ui.pushButton_loadconf.clicked.connect(self.loadConf)
+        self._ui.pushButton_exconf.clicked.connect(self.exportConf)
         self._ui.pushButton_retrieve.clicked.connect(self.retrievePF)
         self._ui.pushButton_loadpsf.clicked.connect(self.load_PSF)
         self._ui.pushButton_pffit.clicked.connect(self.fit_zernike)
@@ -52,6 +54,9 @@ class UI(object):
         # initialize some parameters
         self.has_PSF = False
         self.set_crop()
+
+
+    def configuration(self, config_dict = None):
         self.set_wavelength()
         self.set_nwave()
         self.set_wstep()
@@ -66,6 +71,25 @@ class UI(object):
 
         self._window.show()
         self._app.exec_()
+
+    def loadConf(self):
+        '''
+        load configuration
+        '''
+        filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Configuration file:', '', "configuration files(*.txt *.yaml)")[0]
+        print("Configuration:", filename)
+        self._ui.lineEdit_conf.setText(filename)
+        with open(filename, 'r') as fi:
+            conf_dict = yaml.load(fi)
+            self.configuration(conf_dict)
+
+    def exportConfig(self):
+        '''
+        export configuration
+        '''
+
+
+
 
     def load_PSF(self):
         '''
