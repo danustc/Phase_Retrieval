@@ -171,6 +171,8 @@ class UI(object):
         '''
         if pxl_size is None:
             pxl_size = float(self._ui.lineEdit_pxl.text())
+        else:
+            self._ui.lineEdit_pxl.setText(str(pxl_size))
         self._core.dx = pxl_size*0.001
 
     def set_NA(self, NA_input = None):
@@ -204,7 +206,7 @@ class UI(object):
 
     def export_config(self, destination):
         conf_dict = {'NA': self.NA,
-                'obj_f': self.objf,
+                'objf': self.objf,
                 'pxl': self.pxl,
                 'Ref_ind':self.nfrac,
                 'z_step':self.dz,

@@ -83,7 +83,7 @@ class Core(object):
     @d_wave.setter
     def d_wave(self, new_dw):
         self.dw = new_dw
-        
+ 
     @property
     def PSF(self):
         return self._PSF
@@ -191,7 +191,8 @@ class Core(object):
 
     def get_config(self):
         # return the configuration of the class.
-        conf_dict = {'NA': self.NA, 'objf': self.objf }
+        conf_dict = {'NA': self.NA, 'objf': self.objf/1000, 'wavelength': self.lcenter*1000, 'pxl':self.pxl*1000 , 'nwave':self.n_wave, 'wstep':self.dw, 'refind': self.nfrac, 'zstep':self.dz }
+        return conf_dict
 
 #    def strehl_ratio(self):
 #        # this is very raw. Should save the indices for pixels inside the pupil. 
