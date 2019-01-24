@@ -7,6 +7,7 @@ from PyQt5 import QtWidgets
 import sys
 import os
 import numpy as np
+import yaml
 from libtim import zern
 from PR_core import Core
 import PR_design
@@ -15,7 +16,7 @@ class UI(object):
     '''
     Update log and brief instructions.
     '''
-    def __init__(self, core):
+    def __init__(self, core, config_dict = None):
         '''
         initialize the UI.
         core: the core functions which the UI calls
@@ -28,8 +29,6 @@ class UI(object):
 
         self._ui = PR_design.Ui_Form()
         self._ui.setupUi(self._window)
-
-        #self._app = QtWidgets.QWidget()
 
         # The connection group of the buttons and texts
         self._ui.pushButton_retrieve.clicked.connect(self.retrievePF)
@@ -106,11 +105,12 @@ class UI(object):
     def set_crop(self):
         self.crop = self._ui.checkBox_crop.isChecked()
 
-    def set_nwave(self):
+    def set_nwave(self, nwave = None):
         '''
         directly update the core parameters
         '''
-        nwave = int(self._ui.lineEdit_nwl.text())
+        if nwave is None:
+            nwave = int(self._ui.lineEdit_nwl.text())
         self._core.n_wave = nwave
 
     def set_objf(self, obj_f = None):
@@ -158,7 +158,18 @@ class UI(object):
     def set_destination(self):
         pass
 
+    def export_config(self, destination):
+        conf_dict = {'NA': self.NA,
+                'obj_f': self.objf,
+                'pxl': self.pxl,
+                'Ref_ind':self.nfrac,
+                'z_step':self.dz,
+                'wavelength':self.wavelength,
+                'nwave':self.nwave,
+                'wstep':self.wstep}
 
+        with open(destination, 'w') as fo:
+            yaml.dump(conf_dict, fo, default_flow_style = False)
 
     # ------Below are a couple of execution and displaying functions ------------
     def fit_zernike(self):
@@ -275,9 +286,7 @@ class UI(object):
             np.save(full_name, psf_export)
         except AttributeError:
             print('There is no retrieved pupil function.')
-            
-            
-            
+
     def strehl_ratio(self, phase, ampli):
         NK = self._core.NK
         e_phase = np.cos(phase) + 1j * np.sin(phase)
@@ -285,10 +294,7 @@ class UI(object):
         c_up = np.abs(pf_complex.sum())**2
         c_down = (ampli**2).sum()*NK
         strehl = c_up/c_down
-        
         #strehl = np.abs(e_phase.sum()/NK)**2
-        
-        # this is very raw. Should save the indices for pixels inside the pupil. 
         #c_up = np.abs(self.pf_complex.sum())**2
         #c_down = (self.pf_ampli**2).sum()*self.NK
         #strehl = c_up/c_down
@@ -314,7 +320,12 @@ class UI(object):
 # ------------------------Test of the module------------
 def main():
     pr_core = Core()
-    PR_UI = UI(pr_core)
+    if len(sys.argv) > 1:
+        # configuration file is received
+        try:
+            with open(sys.argv[1], 'r') as fi:
+                conf_dict = yaml.load(fi)
+            PR_UI = UI(pr_core, conf_dict)
 
 if __name__ == '__main__':
     main()
