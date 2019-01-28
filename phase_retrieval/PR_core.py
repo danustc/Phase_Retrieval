@@ -191,7 +191,7 @@ class Core(object):
 
     def get_config(self):
         # return the configuration of the class.
-        conf_dict = {'NA': self.NA, 'objf': self.objf/1000, 'wavelength': self.lcenter*1000, 'pxl':self.pxl*1000 , 'nwave':self.n_wave, 'wstep':self.dw, 'refind': self.nfrac, 'zstep':self.dz }
+        conf_dict = {'NA': self.NA, 'nfrac': self.nfrac, 'objf': self.objf/1000, 'wavelength': self.lcenter*1000, 'pxl':self.pxl*1000 , 'nwave':self.n_wave, 'wstep':self.d_wave*1000, 'zstep':self.dz }
         return conf_dict
 
 #    def strehl_ratio(self):

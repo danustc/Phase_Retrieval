@@ -11,6 +11,7 @@ import yaml
 from libtim import zern
 from PR_core import Core
 import PR_design
+from functools import partial
 
 class UI(object):
     '''
@@ -31,7 +32,7 @@ class UI(object):
         self._ui.setupUi(self._window)
 
         # The connection group of the buttons and texts
-        self._ui.pushButton_loadconf.clicked.connect(self.loadConf)
+        self._ui.pushButton_loadconf.clicked.connect(partial(self.loadConf, None))
         self._ui.pushButton_exconf.clicked.connect(self.exportConf)
         self._ui.pushButton_retrieve.clicked.connect(self.retrievePF)
         self._ui.pushButton_loadpsf.clicked.connect(self.load_PSF)
@@ -54,13 +55,12 @@ class UI(object):
         # initialize some parameters
         self.has_PSF = False
         self.set_crop()
-        self.conf_path = conf_path
         if conf_path is None:
-            self.conf_folder = ''
+            self.conf_folder = '' # set to current folder
             self.configuration()
         else:
-            self.conf_folder = os.path.dirname(conf_path)
-            self.loadConf()
+            self.conf_folder = os.path.dirname(os.path.abspath(conf_path)) + '/'
+            self.loadConf(conf_path)
 
 
 
@@ -82,6 +82,7 @@ class UI(object):
             self.cleaned_phase = None
         else:
             self.set_NA(conf_dict['NA'])
+            self.set_nfrac(conf_dict['nfrac'])
             self.set_nwave(conf_dict['nwave'])
             self.set_objf(conf_dict['objf'])
             self.set_pxl(conf_dict['pxl'])
@@ -110,7 +111,8 @@ class UI(object):
         if conf_dest == '':
             exp_destination = QtWidgets.QFileDialog.getOpenFileName(None, 'Open psf:', '', '*.*')[0]
         else:
-            exp_destination = self.conf_folder + '/' + conf_dest
+            print(conf_dest)
+            exp_destination = self.conf_folder + conf_dest
         conf_dict = self._core.get_config()
         with open(exp_destination, 'w') as fo:
             yaml.dump(conf_dict, fo)
@@ -203,17 +205,23 @@ class UI(object):
     def set_dz(self, dz_input = None):
         if dz_input is None:
            dz_input = float(self._ui.lineEdit_zstep.text())
+        else:
+           self._ui.lineEdit_zstep.setText(str(dz_input))
         self._core.dz = dz_input
 
     def set_wavelength(self,wavelength = None):
         if wavelength is None:
             wavelength = float(self._ui.lineEdit_wlc.text())
+        else:
+            self._ui.lineEdit_wlc.setText(str(wavelength))
         self._core.lcenter = wavelength*0.001 # convert to microns
 
 
     def set_wstep(self, wstep = None):
         if wstep is None:
             wstep = float(self._ui.lineEdit_wlstep.text())
+        else:
+            self._ui.lineEdit_wlstep.setText(str(wstep))
         self._core.d_wave  = wstep*0.001 # convert to microns
 
 
@@ -371,7 +379,8 @@ def main():
         PR_UI = UI(pr_core)
     elif len(sys.argv) > 1:
         # configuration file is received
-        pass
+        print('configuration path:', sys.argv[1])
+        PR_UI = UI(pr_core, conf_path = sys.argv[1])
 
 if __name__ == '__main__':
     main()
