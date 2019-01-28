@@ -196,20 +196,21 @@ class Core(object):
 
     def strehl_ratio(self):
         # this is very raw. Should save the indices for pixels inside the pupil. 
-        # approach 1:
-        c_up = np.abs(self.pf_complex.sum())**2
-        c_down = (self.pf_ampli**2).sum()*self.NK
-        strehl = c_up/c_down
-        # approach 2:
-
+        # by definition:
         phase = self.get_phase()
         ampli = self.get_ampli()
         ephase = np.exp(1j*phase)*np.sign(ampli)
         avg_ephase = ephase.sum()/self.NK
         strehl = np.abs(avg_ephase)**2
+        # by approximation:
+        avg_phase = phase.sum()/self.NK
+        var_phase = (np.sign(ampli)*(phase-avg_phase)**2).sum()/self.NK
+        strehl_appro = np.exp(-var_phase)
 
+        # count in amplitude effect:
+        strehl_ampli = np.abs((ampli*ephase).sum()/ampli.sum())**2
 
-        return strehl
+        return strehl, strehl_appro, strehl_ampli
 
 
     def shutDown(self):
