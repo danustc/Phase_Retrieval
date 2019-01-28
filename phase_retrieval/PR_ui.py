@@ -251,8 +251,11 @@ class UI(object):
         else:
             self.z_fit[:4] = 0.
             k_max = self._core.PF.k_pxl
+            print("k_max:", k_max)
             cleaned_phase = zern.calc_zernike(self.z_fit, rad = k_max)
+            print(cleaned_phase.shape)
             ampli=self._core.get_ampli(True)
+            print(ampli.shape)
             strehl_clean = self.strehl_ratio(cleaned_phase, ampli)
             print("removed the first 4 modes. Strehl ratio:", strehl_clean)
             self.display_phase(cleaned_phase)
