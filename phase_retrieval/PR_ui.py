@@ -144,11 +144,11 @@ class UI(object):
             raw_phase= self._core.get_phase(crop = True)
             ampli=self._core.get_ampli(crop = True)
             strehl_raw = self.strehl_ratio(raw_phase, ampli)
-            print("Raw strehl ratio:", strehl_raw)
+            #print("Raw strehl ratio:", strehl_raw)
             #self.display_psf(n_cut = int(self._core.nz//2))
             self.display_phase()
             self.display_ampli()
-            #print("Strehl ratio:", self._core.strehl_ratio())
+            print("Strehl ratio:", self._core.strehl_ratio())
         else:
             print("There is no PSF for phase retrieval.")
 
@@ -344,12 +344,13 @@ class UI(object):
 
     def strehl_ratio(self, phase, ampli):
         NK = self._core.NK
-        e_phase = np.cos(phase) + 1j * np.sin(phase)
+        e_phase = np.sign(ampli)*(np.cos(phase) + 1j * np.sin(phase))
         pf_complex = ampli*e_phase
         c_up = np.abs(pf_complex.sum())**2
         c_down = (ampli**2).sum()*NK
         strehl = c_up/c_down
-        #strehl = np.abs(e_phase.sum()/NK)**2
+        # Phase-only calculation
+        strehl = np.abs(e_phase.sum()/NK)**2
         #c_up = np.abs(self.pf_complex.sum())**2
         #c_down = (self.pf_ampli**2).sum()*self.NK
         #strehl = c_up/c_down

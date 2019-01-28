@@ -194,12 +194,23 @@ class Core(object):
         conf_dict = {'NA': self.NA, 'nfrac': self.nfrac, 'objf': self.objf/1000, 'wavelength': self.lcenter*1000, 'pxl':self.pxl*1000 , 'nwave':self.n_wave, 'wstep':self.d_wave*1000, 'zstep':self.dz }
         return conf_dict
 
-#    def strehl_ratio(self):
-#        # this is very raw. Should save the indices for pixels inside the pupil. 
-#        c_up = np.abs(self.pf_complex.sum())**2
-#        c_down = (self.pf_ampli**2).sum()*self.NK
-#        strehl = c_up/c_down
-#        return strehl
+    def strehl_ratio(self):
+        # this is very raw. Should save the indices for pixels inside the pupil. 
+        # approach 1:
+        c_up = np.abs(self.pf_complex.sum())**2
+        c_down = (self.pf_ampli**2).sum()*self.NK
+        strehl = c_up/c_down
+        # approach 2:
+
+        phase = self.get_phase()
+        ampli = self.get_ampli()
+        ephase = np.exp(1j*phase)*np.sign(ampli)
+        avg_ephase = ephase.sum()/self.NK
+        strehl = np.abs(avg_ephase)**2
+
+
+        return strehl
+
 
     def shutDown(self):
         '''
@@ -242,5 +253,4 @@ class _PupilFunction(object):
     def phase(self, new):
         self._phase = new
         self._complex = self._amplitude * np.exp(1j*new)
-
 
