@@ -16,7 +16,7 @@ class UI(object):
     '''
     Update log and brief instructions.
     '''
-    def __init__(self, core, config_dict = None):
+    def __init__(self, core, conf_path = None):
         '''
         initialize the UI.
         core: the core functions which the UI calls
@@ -54,10 +54,15 @@ class UI(object):
         # initialize some parameters
         self.has_PSF = False
         self.set_crop()
-
-
-        if config_dict is None:
+        self.conf_path = conf_path
+        if conf_path is None:
+            self.conf_folder = ''
             self.configuration()
+        else:
+            self.conf_folder = os.path.dirname(conf_path)
+            self.loadConf()
+
+
 
         self._window.show()
         self._app.exec_()
@@ -78,17 +83,18 @@ class UI(object):
         else:
             self.set_NA(conf_dict['NA'])
             self.set_nwave(conf_dict['nwave'])
-            self.set_objf(conf_dict['obj_f'])
+            self.set_objf(conf_dict['objf'])
             self.set_pxl(conf_dict['pxl'])
-            self.set_dz(conf_dict['dz'])
+            self.set_dz(conf_dict['zstep'])
             self.set_wavelength(conf_dict['wavelength'])
             self.set_wstep(conf_dict['wstep'])
 
-    def loadConf(self):
+    def loadConf(self, conf_source = None):
         '''
         load configuration
         '''
-        conf_source = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Configuration file:', '', "configuration files(*.txt *.yaml)")[0]
+        if conf_source is None:
+            conf_source = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Configuration file:', '', "configuration files(*.txt *.yaml)")[0]
         print("Configuration:", conf_source)
         self._ui.lineEdit_conf.setText(conf_source)
         with open(conf_source, 'r') as fi:
@@ -100,7 +106,11 @@ class UI(object):
         export configuration
         '''
         # Read the file name from current 
-        exp_destination = 'config.yaml'
+        conf_dest = self._ui.lineEdit_conf.text()
+        if conf_dest == '':
+            exp_destination = QtWidgets.QFileDialog.getOpenFileName(None, 'Open psf:', '', '*.*')[0]
+        else:
+            exp_destination = self.conf_folder + '/' + conf_dest
         conf_dict = self._core.get_config()
         with open(exp_destination, 'w') as fo:
             yaml.dump(conf_dict, fo)
@@ -136,7 +146,7 @@ class UI(object):
             #self.display_psf(n_cut = int(self._core.nz//2))
             self.display_phase()
             self.display_ampli()
-            print("Strehl ratio:", self._core.strehl_ratio())
+            #print("Strehl ratio:", self._core.strehl_ratio())
         else:
             print("There is no PSF for phase retrieval.")
 
@@ -178,11 +188,16 @@ class UI(object):
     def set_NA(self, NA_input = None):
         if NA_input is None:
             NA_input = float(self._ui.lineEdit_NA.text())
+        else:
+            self._ui.lineEdit_NA.setText(str(NA_input))
         self._core.NA = NA_input
 
     def set_nfrac(self, nfrac = None):
         if nfrac is None:
             nfrac = float(self._ui.lineEdit_nfrac.text())
+        else:
+            self._ui.lineEdit_nfrac.setText(str(nfrac))
+
         self._core.nfrac = nfrac
 
     def set_dz(self, dz_input = None):
@@ -201,21 +216,7 @@ class UI(object):
             wstep = float(self._ui.lineEdit_wlstep.text())
         self._core.d_wave  = wstep*0.001 # convert to microns
 
-    def set_destination(self):
-        pass
 
-    def export_config(self, destination):
-        conf_dict = {'NA': self.NA,
-                'objf': self.objf,
-                'pxl': self.pxl,
-                'Ref_ind':self.nfrac,
-                'z_step':self.dz,
-                'wavelength':self.wavelength,
-                'nwave':self.nwave,
-                'wstep':self.wstep}
-
-        with open(destination, 'w') as fo:
-            yaml.dump(conf_dict, fo, default_flow_style = False)
 
     # ------Below are a couple of execution and displaying functions ------------
     def fit_zernike(self):
@@ -370,12 +371,7 @@ def main():
         PR_UI = UI(pr_core)
     elif len(sys.argv) > 1:
         # configuration file is received
-        try:
-            with open(sys.argv[1], 'r') as fi:
-                conf_dict = yaml.load(fi)
-            PR_UI = UI(pr_core, conf_dict)
-        except IOError:
-            print("The configuration file does not exist.")
+        pass
 
 if __name__ == '__main__':
     main()
