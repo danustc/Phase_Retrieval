@@ -140,6 +140,7 @@ class UI(object):
             mask_size = int(self._ui.lineEdit_mask.text())
             psf_rad = int(self._ui.lineEdit_prad.text())
             nIt = self._ui.spinBox_nIt.value()
+            #nIt = 1
             self._core.retrievePF(psf_rad, mask_size, nIt)
             raw_phase= self._core.get_phase(crop = True)
             ampli=self._core.get_ampli(crop = True)
@@ -236,7 +237,7 @@ class UI(object):
         phase = self._core.pf_phase
         D_phase = int(phase.shape[0]//2)
         pf_crop = phase[D_phase - k_max:D_phase+k_max, D_phase-k_max:D_phase + k_max]
-        z_fit = zern.fit_zernike(pf_crop, rad = k_max, nmodes = self.nmodes)[0]/(2*np.pi)
+        z_fit = zern.fit_zernike(pf_crop, rad = k_max, nmodes = self.nmodes)[0]
         print(z_fit)
 
         self.z_fit = z_fit

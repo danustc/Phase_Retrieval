@@ -11,7 +11,7 @@ Need to use @setter and @property functions to simplify this.
 import os
 import numpy as np
 import tifffile as tf
-from pupil import Pupil
+from pupil_simplify import Pupil
 from numpy.lib.scimath import sqrt as _msqrt
 from skimage.restoration import unwrap_phase
 from psf_tools import psf_zplane
@@ -131,6 +131,7 @@ class Core(object):
         # simulate a pupil function using given parameters; update the list. Everything is included.
         print(self.NA)
         self.PF= Pupil(self.nx, self.dx,self.l,self.nfrac,self.NA,self.cf,wavelengths=self.n_wave, wave_step = self.d_wave) # initialize the pupil function
+
         in_pupil = self.PF.k <= self.PF.k_max
         self.NK = in_pupil.sum()
 
@@ -155,7 +156,6 @@ class Core(object):
 
     def retrievePF(self, p_diam, p_mask, nIt):
         A = self.PF.plane # initial pupil function:plane
-        Mx, My = np.meshgrid(np.arange(self.nx)-self.nx/2., np.arange(self.nx)-self.nx/2.)
         background = self.background_reset(mask = p_mask, psf_diam = p_diam)
         print( "   background = ", background)
         PSF_sample = self.PSF
