@@ -11,7 +11,7 @@ Need to use @setter and @property functions to simplify this.
 import os
 import numpy as np
 import tifffile as tf
-from pupil_simplify import Pupil
+from pupil import Pupil
 from numpy.lib.scimath import sqrt as _msqrt
 from skimage.restoration import unwrap_phase
 from psf_tools import psf_zplane
